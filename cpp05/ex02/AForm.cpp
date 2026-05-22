@@ -19,7 +19,7 @@ AForm::AForm(const std::string name, const int grade_required_to_sign, const int
 		{
 			throw AForm::GradeTooHighException();
 		}
-		else if (this->_grade_required_to_sign > 150 || this->_grade_required_to_execute > 1)
+		else if (this->_grade_required_to_sign > 150 || this->_grade_required_to_execute > 150)
 		{
 			throw AForm::GradeTooLowException();
 		}
@@ -75,7 +75,7 @@ const char * AForm::FormNotSignedException::what() const throw()
 
 void AForm::execute(Bureaucrat const & executor) const
 {
-	if (this->getSignGrade() == false) {
+	if (this->getSigned() == false) {
 		throw AForm::FormNotSignedException();
 	}
 	if (executor.getGrade() > this->getExecGrade()) {
