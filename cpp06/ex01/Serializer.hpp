@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <stdint.h>
 #include "Data.hpp"
 
 class Serializer
@@ -12,4 +13,5 @@ class Serializer
 		Serializer operator=(const Serializer& obj);
 	public:
 		static uintptr_t Serialize(Data* ptr);
+		static Data* desreialize(uintptr_t raw);
 };

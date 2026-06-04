@@ -1,10 +1,10 @@
 #pragma once
 
-class Data
+#include <iostream>
+
+struct Data
 {
-	private:
-		
-	public:
-		Data();
-		~Data();
+	int	id;
+	std::string name;
+	double	value;
 };
