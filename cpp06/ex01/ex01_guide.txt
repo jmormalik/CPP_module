@@ -1,0 +1,93 @@
+CPP Module 06 - ex01: Serialization
+====================================
+
+[과제 개요]
+포인터를 정수형으로 직렬화(serialize)했다가 다시 포인터로 복원(deserialize)하는
+두 함수를 구현하는 과제.
+
+
+[요구사항]
+
+1. Data 구조체 (또는 클래스) 생성
+   - 멤버는 자유롭게 정의해도 됨
+   - 빈 구조체는 안 됨, 의미 있는 멤버 몇 개를 넣을 것
+
+2. Serializer 클래스 구현 - 다음 규칙 준수
+   - 인스턴스화 불가능한 클래스여야 함 (객체로 만들 수 없어야 함)
+   - 두 개의 public static 멤버 함수를 가짐:
+
+     static uintptr_t serialize(Data* ptr);
+         // Data* 포인터를 받아 uintptr_t 정수로 변환해서 반환
+
+     static Data* deserialize(uintptr_t raw);
+         // uintptr_t 정수를 받아 Data*로 변환해서 반환
+
+3. main() 작성
+   - Data 객체를 하나 만들고
+   - 그 포인터를 serialize()로 정수화
+   - 그 정수를 다시 deserialize()로 포인터화
+   - 처음 포인터와 마지막 포인터가 같은 주소를 가리키는지 확인
+
+4. 제출 파일
+   - Makefile, main.cpp, Serializer.{h,hpp}, 그리고 필요한 다른 파일들
+   - 클래스 이름: Serializer
+
+
+[핵심 개념]
+
+* uintptr_t란?
+  - <stdint.h> (C++에서는 <cstdint>)에 정의된 부호 없는 정수 타입
+  - 포인터를 담을 수 있을 만큼 충분히 큰 크기가 보장됨
+    (64bit OS면 8바이트, 32bit면 4바이트)
+  - 즉, 어떤 포인터든 uintptr_t로 변환 후 다시 원래 포인터로 안전하게 복원 가능
+
+* 왜 reinterpret_cast를 써야 하나?
+  - 포인터 <-> 정수 변환은 의미적으로 완전히 다른 타입 간 변환이라
+    static_cast로는 안 됨
+  - reinterpret_cast는 비트 패턴을 그대로 두고 해석을 바꾸는 캐스트
+    -> 이 상황에 정확히 부합
+
+
+[진행 팁]
+
+1. 인스턴스화 불가능 클래스 만드는 방법 (생각해볼 것)
+   - 생성자/소멸자/복사생성자/대입연산자를 어디에 두면 객체 생성 자체가 막힐까?
+   -> 모두 private로 선언하고 정의하지 않으면 됨. C++98 스타일에서 흔한 패턴.
+   - ex00의 ScalarConverter와 동일한 구조 -> ex00을 했다면 그 패턴 재사용 가능.
+
+2. static 함수만 있는 유틸리티 클래스 패턴
+   - 멤버 변수도 없고, 객체 상태도 없음 -> 네임스페이스처럼 동작
+   - 호출은 Serializer::serialize(ptr) 형태
+
+3. main 검증 로직
+   - 단순히 주소 비교(==)뿐 아니라, 역직렬화된 포인터로 멤버에 접근해서
+     원래 값이 그대로 살아있는지까지 출력해보면 직관적 이해가 됨
+   - assert()를 활용해도 좋음
+
+4. 컴파일 플래그 (42 표준)
+   - -Wall -Wextra -Werror -std=c++98
+   - uintptr_t 사용 시 <stdint.h> 또는 <cstdint> include 필요.
+     C++98에서도 대부분의 컴파일러가 지원하지만 만약 경고가 뜨면 <stdint.h> 사용.
+
+5. ex00 vs ex01 vs ex02 비교 학습 포인트
+   - ex00 (ScalarConverter): static_cast의 정상적 타입 변환
+   - ex01 (Serializer):      reinterpret_cast의 비트 단위 재해석
+   - ex02 (Identify):        dynamic_cast의 런타임 다운캐스트
+   -> 이 세 가지 캐스트의 차이를 정리해두면 모듈 06 전체가 한눈에 들어옴
+
+6. 주의할 함정
+   - Data 구조체를 빈 구조체로 만들지 말 것
+     (의미 없음 + 일부 평가자가 지적함)
+   - Serializer 클래스에서 객체 생성이 정말 불가능한지
+     "Serializer s;" 한 줄 시험 컴파일로 확인
+   - Makefile은 re, clean, fclean, all 규칙 모두 포함
+
+
+[평가/방어 시 받을 가능성 있는 질문]
+
+- 왜 uintptr_t를 쓰나? int나 long은 안 되나?
+- reinterpret_cast와 static_cast의 차이는?
+- 이런 직렬화가 실제로 어디서 쓰이나?
+  (힌트: IPC, 핸들 시스템, 콜백 user_data 등)
+- 객체 생성을 막는 방법은 몇 가지가 있나?
+  (private 생성자, = delete (C++11), 추상 클래스 등)
